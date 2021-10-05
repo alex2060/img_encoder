@@ -1,8 +1,4 @@
-from PIL import Image
-
-#print(im.size)
 import random
-
 def point_to_value(a):
 	if a=="0":
 		return 0
@@ -131,7 +127,6 @@ def point_to_value(a):
 	if a=="-":
 		return 62
 	return 63
-
 
 def value_to_point(a):
 	if a==0:
@@ -292,8 +287,6 @@ def number_valie(myval):
 
 	return array
 
-
-
 def number_to_binary(number):
 	arry=[0,0,0,0,0,0]
 	if number>=2**5:
@@ -316,89 +309,133 @@ def number_to_binary(number):
 		arry[5]=1
 	return arry
 
-
-
 def binary_to_number(arry):
 	value=arry[0]*(2**5)+arry[1]*(2**4)+arry[2]*(2**3)+arry[3]*(2**2)+arry[4]*(2**1)+arry[5]*(2**0)
 	return value
 
-
-
-
-
-
-def encode_list(pix,line):
-	offset=20
+def encode_list(pix,line,encoder):
+	offset=6
 	array=[0,0,0,0,0,0]
+	lineencoder = [ encoder[line*6+0],encoder[line*6+1],encoder[line*6+2],encoder[line*6+3],encoder[line*6+4],encoder[line*6+5] ]
+
 	for y in range(6):
+		this_bit_data = lineencoder[y]
 		combo_number=0
 		for x in range(offset):
-			#print(offset*y+x,pix[line,offset*y+x])
-			combo_number=combo_number+pix[line,offset*y+x][0]+pix[line,offset*y+x][1]+pix[line,offset*y+x][2]
-		#print(combo_number,combo_number%2,line,x)
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][0]+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][1]+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][2]
 		array[y]=combo_number%2
 	return value_to_point(binary_to_number(array))
 
-
-
-
-
-
-def encode_line(pix,line,letter):
-	offset=20
+def encode_line(pix,line,letter,encoder):
+	offset=6
+	lineencoder = [ encoder[line*6+0],encoder[line*6+1],encoder[line*6+2],encoder[line*6+3],encoder[line*6+4],encoder[line*6+5] ]
 	myarray=number_to_binary(point_to_value(letter))
 	for y in range(6):
 		combo_number=0
+		this_bit_data = lineencoder[y]
 		for x in range(offset):
-			#print(offset*y+x,pix[line,offset*y+x])
-			combo_number=combo_number+pix[line,offset*y+x][0]+pix[line,offset*y+x][1]+pix[line,offset*y+x][2]
-		#print(combo_number)
-		#print("new encoding")
-		pixale_val= random.randint(0,offset-1)
-		latter_val=random.randint(0,2)
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][0]
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][1]
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][2]
+		old_combo = combo_number%2
+		pixale_val= random.randint(0,5)
+		latter_val= random.randint(0,2)
+		addin=pix[ int(this_bit_data[2*pixale_val]), int(this_bit_data[2*pixale_val+1]) ]
+
+		old_pix=addin
 		if myarray[y]==1:
 			if combo_number%2==0:
-				if pix[line,offset*y+pixale_val][latter_val]!=0:
-					#print("in here",latter_val)
+				#print("go 1",latter_val)
+				if addin[latter_val]!=0:
 					if latter_val==0:
-						addin=(pix[line,offset*y+pixale_val][0]-1,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]-1,addin[1]   ,addin[2]  )
 					if latter_val==1:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]-1,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]  ,addin[1]-1 ,addin[2]  )
 					if latter_val==2:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2]-1)
+						addin=(addin[0]  ,addin[1]   ,addin[2]-1)
 				else:
-					#print("in heres")
 					if latter_val==0:
-						addin=(pix[line,offset*y+pixale_val][0]+1,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]+1 ,addin[1]   ,addin[2]   )
 					if latter_val==1:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]+1,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]   ,addin[1]+1 ,addin[2]  )
 					if latter_val==2:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2]+1)
-				
-				#print(pix[line,offset*y+pixale_val],addin)
-				pix[line,offset*y+pixale_val]=addin
-				#print(pix[line,offset*y+pixale_val],line,offset*y+pixale_val)
+						addin=(addin[0]   ,addin[1]   ,addin[2]+1)
 		if myarray[y]==0:
 			if combo_number%2==1:
+				#print("go 0",latter_val)
 				latter_val=random.randint(0,2)
-				if pix[line,offset*y+pixale_val][latter_val]!=0:
+				if addin[latter_val]!=0:
 					if latter_val==0:
-						addin=(pix[line,offset*y+pixale_val][0]-1,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]-1,addin[1]   ,addin[2]  )
 					if latter_val==1:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]-1,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]  ,addin[1]-1 ,addin[2]  )
 					if latter_val==2:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2]-1)
+						addin=(addin[0]  ,addin[1]   ,addin[2]-1)
 				else:
 					if latter_val==0:
-						addin=(pix[line,offset*y+pixale_val][0]+1,pix[line,offset*y+pixale_val][1]  ,pix[lineoffset*y+pixale_val][2])
+						addin=(addin[0]+1 ,addin[1]   ,addin[2]   )
 					if latter_val==1:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]+1,pix[line,offset*y+pixale_val][2])
+						addin=(addin[0]   ,addin[1]+1 ,addin[2]  )
 					if latter_val==2:
-						addin=(pix[line,offset*y+pixale_val][0]  ,pix[line,offset*y+pixale_val][1]  ,pix[line,offset*y+pixale_val][2]+1)
-				#print(pix[line,offset+pixale_val],addin)
-				pix[line,offset*y+pixale_val]=addin
-				#print(pix[line,offset+pixale_val],line,offset*y+pixale_val)
+						addin=(addin[0]   ,addin[1]   ,addin[2]+1)
+
+		pix[ int(this_bit_data[2*pixale_val]), int(this_bit_data[2*pixale_val+1]) ]=addin
+		combo_number=0
+		for x in range(offset):
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][0]
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][1]
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][2]
+		if combo_number%2!=myarray[y]:
+			print(old_pix,addin)
+			quit()
 	return pix
+
+
+
+
+def decode_line(pix,line,encoder):
+	offset=6
+	lineencoder = [ encoder[line*6+0],encoder[line*6+1],encoder[line*6+2],encoder[line*6+3],encoder[line*6+4],encoder[line*6+5] ]
+
+	for y in range(6):
+		combo_number=0
+		this_bit_data = lineencoder[y]
+		for x in range(offset):
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][0]
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][1]
+			combo_number=combo_number+pix[ int(this_bit_data[2*x]), int(this_bit_data[2*x+1]) ][2]
+		#print(combo_number)
+		#print("new encoding")
+		print(combo_number%2)
+
+
+def make_random_array(width,hight,number_of):
+	myset = []
+	layers = [0]*(number_of*6)
+	for x in range(number_of*6):
+		layers[x]= [0]*24
+		for y in range(12):
+			addednew=False
+			for z in range(10000):
+				val1= str(random.randint(1,width-2))
+				val2= str(random.randint(1,hight-2))
+				addval = val1+"?"+val2
+				if addval not in myset:
+					addednew=True
+					#print("shouldadd")
+
+					myset.append(addval)
+					break
+				else:
+					#print()
+					pass
+			if addednew!=True:
+				return False
+			#print("added")
+			layers[x][y*2+0] = val1
+			layers[x][y*2+1] = val2
+	return layers
+
 
 
 
@@ -410,12 +447,32 @@ def encode_line(pix,line,letter):
 
 #print(pix[0,0])
 
-def gen_encoding():
-	pass
 
 
 
 
+
+
+
+
+
+from PIL import Image
+
+
+
+newencoder = []
+
+
+f = open('matrix.txt', 'r')
+Lines = f.readlines()
+count = 0
+# Strips the newline character
+for line in Lines:
+	val=line.split(",")
+	for x in range(len(val)-1):
+		val[x]=int(val[x])
+	newencoder.append(val)
+f.close()
 
 
 
@@ -424,10 +481,16 @@ power = Image.open('data_photo.png') # Can be many different formats.
 
 newpix = power.load()
 output=""
-for x in range(40):
-	output=output+encode_list(newpix,x)
+for x in range(len(newencoder)//6):
+	output=output+encode_list(newpix,x,newencoder)
 
 print(output)
+
+
+
+
+
+
 
 
 

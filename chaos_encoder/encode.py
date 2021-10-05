@@ -463,14 +463,13 @@ pix = im.load()
 
 import random
 
-data="savemefrom_myslef"
+data="savemefrom_myself"
 
 encoder = make_random_array(230,230,len(data)) 
 gonow=pix
 
 for x in range(len(data)):
 	gonow=encode_line(gonow,x,data[x],encoder)
-	#decode_line(gonow,x,encoder)
 
 
 im.save("data_photo.png", "PNG")
@@ -478,6 +477,29 @@ im.save("data_photo.png", "PNG")
 print("done")
 
 
+f = open("matrix.txt", "w")
+for x in range(len(encoder)):
+
+	for y in range(len(encoder[x])):
+		f.write(encoder[x][y]+",")
+	f.write("\n")
+f.close()
+
+
+
+newencoder = []
+
+
+f = open('matrix.txt', 'r')
+Lines = f.readlines()
+count = 0
+# Strips the newline character
+for line in Lines:
+	val=line.split(",")
+	for x in range(len(val)-1):
+		val[x]=int(val[x])
+	newencoder.append(val)
+f.close()
 
 
 
@@ -487,9 +509,11 @@ power = Image.open('data_photo.png') # Can be many different formats.
 newpix = power.load()
 output=""
 for x in range(len(data)):
-	output=output+encode_list(newpix,x,encoder)
-
+	output=output+encode_list(newpix,x,newencoder)
+print("test")
 print(output)
+
+
 
 
 
